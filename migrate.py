@@ -198,13 +198,12 @@ def parse_excel_migration(products_file, skus_file, price_modifier=None, log_cb=
         if prod['link_foto_principal']:
             product_media = [prod['link_foto_principal']]
 
-        # Collections (Multiple from 'categorias' and 'colecoes')
+        # Collections (Multiple from 'categorias' only)
         collection_names = set()
-        for col_name in ['categorias', 'colecoes']:
-            if col_name in prod and prod[col_name]:
-                parts = [c.strip() for c in str(prod[col_name]).split(';') if c.strip()]
-                for p in parts:
-                    collection_names.add(p)
+        if 'categorias' in prod and prod['categorias']:
+            parts = [c.strip() for c in str(prod['categorias']).split(';') if c.strip()]
+            for p in parts:
+                collection_names.add(p)
 
         migration_data.append({
             "product": product_input,
