@@ -1,0 +1,12 @@
+.env
+credentials.md
+*.xls
+*.xlsx
+__pycache__/
+*.pyc
+.DS_Store
+sku_debug.json
+shopify_res.json
+diag_schema.py
+venv/
+.venv/
