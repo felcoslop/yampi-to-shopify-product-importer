@@ -198,10 +198,18 @@ def parse_excel_migration(products_file, skus_file, price_modifier=None, log_cb=
         if prod['link_foto_principal']:
             product_media = [prod['link_foto_principal']]
 
+        # Collections (Multiple from 'categorias' and 'colecoes')
+        collection_names = set()
+        for col_name in ['categorias', 'colecoes']:
+            if col_name in prod and prod[col_name]:
+                parts = [c.strip() for c in str(prod[col_name]).split(';') if c.strip()]
+                for p in parts:
+                    collection_names.add(p)
+
         migration_data.append({
             "product": product_input,
             "media": product_media,
-            "category": prod.get('categoria', '').strip()
+            "categories": list(collection_names)
         })
 
     return migration_data
@@ -244,11 +252,11 @@ def run_migration(products_file, skus_file, price_modifier=None, log_cb=print, d
 
     for i, item in enumerate(data):
         prod_title = item['product']['title']
-        category_name = item.get('category')
+        categories = item.get('categories', [])
         log_cb(f"[{i+1}/{len(data)}] Migrating: {prod_title}...")
         
         if dry_run:
-            log_cb(f"DRY RUN: Payload for {prod_title} would be sent. Variants count: {len(item['product'].get('variants', []))}. Categoria: {category_name}")
+            log_cb(f"DRY RUN: Payload for {prod_title} would be sent. Variants count: {len(item['product'].get('variants', []))}. Categorias: {categories}")
         else:
             res = client.product_set(item['product'])
             if res and 'data' in res and res['data'].get('productSet', {}).get('product'):
@@ -260,8 +268,8 @@ def run_migration(products_file, skus_file, price_modifier=None, log_cb=print, d
                     client.product_create_media(p_id, item['media'])
                     log_cb(f"Media enviada para {prod_title}.")
                 
-                # Step 3: Collection/Category
-                if category_name:
+                # Step 3: Collections/Categories
+                for category_name in categories:
                     c_id = collection_map.get(category_name.lower())
                     if not c_id:
                         log_cb(f"Criando coleção: {category_name}")
